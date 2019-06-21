@@ -6,6 +6,15 @@ class Expression(ABC):
     def __repr__(self):
         pass
 
+    def __and__(self, other):
+        return AndExpression(self, other)
+
+    def __or__(self, other):
+        return OrExpression(self, other)
+
+    def __invert__(self):
+        return NotExpression(self)
+
     @property
     @abstractmethod
     def variables(self):
@@ -28,7 +37,8 @@ class NotExpression(Expression):
         return self.expression.variables
 
     def calculate(self, variables):
-        return self.expression.calculate(variables)
+        result = not self.expression.calculate(variables)
+        return int(result)
 
 
 class ConstantExpression(Expression):
@@ -84,7 +94,6 @@ class AndExpression(BinaryExpression):
     def calculate(self, variables):
         result = (self.left.calculate(variables)
                   and self.right.calculate(variables))
-
         return int(result)
 
 
@@ -95,7 +104,6 @@ class OrExpression(BinaryExpression):
     def calculate(self, variables):
         result = (self.left.calculate(variables)
                   or self.right.calculate(variables))
-
         return int(result)
 
 
@@ -108,7 +116,6 @@ class XorExpression(BinaryExpression):
         right_value = self.right.calculate(variables)
         result = ((not left_value and right_value)
                   or (left_value and not right_value))
-
         return int(result)
 
 
@@ -119,7 +126,6 @@ class NorExpression(BinaryExpression):
     def calculate(self, variables):
         result = not (self.left.calculate(variables)
                       or self.right.calculate(variables))
-
         return int(result)
 
 
@@ -130,7 +136,6 @@ class NandExpression(BinaryExpression):
     def calculate(self, variables):
         result = not (self.left.calculate(variables)
                       and self.right.calculate(variables))
-
         return int(result)
 
 
@@ -141,7 +146,6 @@ class ImplyExpression(BinaryExpression):
     def calculate(self, variables):
         result = (not self.left.calculate(variables)
                   or self.right.calculate(variables))
-
         return int(result)
 
 
@@ -154,5 +158,4 @@ class EqExpression(BinaryExpression):
         right_value = self.right.calculate(variables)
         result = ((not left_value and not right_value)
                   or left_value and right_value)
-
         return int(result)
