@@ -13,13 +13,15 @@ def print_table(table):
         print()
 
 
-expression = 'x V y & z -> z V x'
+expression = '(-x & z) V (x & -z) V (x & z)'
 expression1 = '1 & 1 V 0 V 0 / 1'
 tokens = lex(expression)
 print(tokens)
 ast = parse(tokens)
-print(ast.variables)
 print(ast)
 calculator = BooleanCalculator(ast)
 print_table(calculator.truth_table)
+print()
+print(calculator.fcnf)
+print(calculator.fdnf)
 
