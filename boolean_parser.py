@@ -14,8 +14,6 @@ def parser():
 
 
 def boolean():
-    # return cmb.Phrase(
-    #     precedence(term(), precedence_levels, binary_nodes))
     return precedence(term(), precedence_levels, binary_nodes)
 
 

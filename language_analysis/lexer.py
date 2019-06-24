@@ -41,7 +41,8 @@ class Lexer(object):
 
         return tokens
 
-    def _is_token_patterns(self, checking):
+    @staticmethod
+    def _is_token_patterns(checking):
         def is_token_pattern(checking_unit):
             return (len(checking_unit) == 2
                     and isinstance(checking_unit[0], str))

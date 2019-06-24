@@ -1,3 +1,4 @@
+import functools
 from abc import ABC, abstractmethod
 
 
@@ -21,7 +22,7 @@ class Expression(ABC):
         pass
 
     @abstractmethod
-    def calculate(self, variables):
+    def calculate(self, variable_values):
         pass
 
 
@@ -33,11 +34,12 @@ class NotExpression(Expression):
         return f'NOT({self.expression})'
 
     @property
+    @functools.lru_cache()
     def variables(self):
         return self.expression.variables
 
-    def calculate(self, variables):
-        result = not self.expression.calculate(variables)
+    def calculate(self, variable_values):
+        result = not self.expression.calculate(variable_values)
         return int(result)
 
 
@@ -49,10 +51,11 @@ class ConstantExpression(Expression):
         return f'{self.value}'
 
     @property
+    @functools.lru_cache()
     def variables(self):
         return set()
 
-    def calculate(self, variables):
+    def calculate(self, variable_values):
         return self.value
 
 
@@ -64,13 +67,14 @@ class VariableExpression(Expression):
         return self.name
 
     @property
+    @functools.lru_cache()
     def variables(self):
         return {self.name}
 
-    def calculate(self, variables):
-        if self.name not in variables:
+    def calculate(self, variable_values):
+        if self.name not in variable_values:
             raise ValueError('No such variable value in given variables.')
-        return variables[self.name]
+        return variable_values[self.name]
 
 
 class BinaryExpression(Expression):
@@ -83,6 +87,7 @@ class BinaryExpression(Expression):
         return '{}' + f'({self.left}, {self.right})'
 
     @property
+    @functools.lru_cache()
     def variables(self):
         return self.left.variables | self.right.variables
 
@@ -91,9 +96,9 @@ class AndExpression(BinaryExpression):
     def __repr__(self):
         return super().__repr__().format('AND')
 
-    def calculate(self, variables):
-        result = (self.left.calculate(variables)
-                  and self.right.calculate(variables))
+    def calculate(self, variable_values):
+        result = (self.left.calculate(variable_values)
+                  and self.right.calculate(variable_values))
         return int(result)
 
 
@@ -101,9 +106,9 @@ class OrExpression(BinaryExpression):
     def __repr__(self):
         return super().__repr__().format('OR')
 
-    def calculate(self, variables):
-        result = (self.left.calculate(variables)
-                  or self.right.calculate(variables))
+    def calculate(self, variable_values):
+        result = (self.left.calculate(variable_values)
+                  or self.right.calculate(variable_values))
         return int(result)
 
 
@@ -111,9 +116,9 @@ class XorExpression(BinaryExpression):
     def __repr__(self):
         return super().__repr__().format('XOR')
 
-    def calculate(self, variables):
-        left_value = self.left.calculate(variables)
-        right_value = self.right.calculate(variables)
+    def calculate(self, variable_values):
+        left_value = self.left.calculate(variable_values)
+        right_value = self.right.calculate(variable_values)
         result = ((not left_value and right_value)
                   or (left_value and not right_value))
         return int(result)
@@ -123,9 +128,9 @@ class NorExpression(BinaryExpression):
     def __repr__(self):
         return super().__repr__().format('NOR')
 
-    def calculate(self, variables):
-        result = not (self.left.calculate(variables)
-                      or self.right.calculate(variables))
+    def calculate(self, variable_values):
+        result = not (self.left.calculate(variable_values)
+                      or self.right.calculate(variable_values))
         return int(result)
 
 
@@ -133,9 +138,9 @@ class NandExpression(BinaryExpression):
     def __repr__(self):
         return super().__repr__().format('NAND')
 
-    def calculate(self, variables):
-        result = not (self.left.calculate(variables)
-                      and self.right.calculate(variables))
+    def calculate(self, variable_values):
+        result = not (self.left.calculate(variable_values)
+                      and self.right.calculate(variable_values))
         return int(result)
 
 
@@ -143,9 +148,9 @@ class ImplyExpression(BinaryExpression):
     def __repr__(self):
         return super().__repr__().format('IMPLY')
 
-    def calculate(self, variables):
-        result = (not self.left.calculate(variables)
-                  or self.right.calculate(variables))
+    def calculate(self, variable_values):
+        result = (not self.left.calculate(variable_values)
+                  or self.right.calculate(variable_values))
         return int(result)
 
 
@@ -153,9 +158,9 @@ class EqExpression(BinaryExpression):
     def __repr__(self):
         return super().__repr__().format('EQ')
 
-    def calculate(self, variables):
-        left_value = self.left.calculate(variables)
-        right_value = self.right.calculate(variables)
+    def calculate(self, variable_values):
+        left_value = self.left.calculate(variable_values)
+        right_value = self.right.calculate(variable_values)
         result = ((not left_value and not right_value)
                   or left_value and right_value)
         return int(result)

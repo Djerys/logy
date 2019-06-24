@@ -1,79 +1,82 @@
-from functools import reduce
+import functools
 
 import boolean_ast as ast
+
+
+class ConstantFunctionError(Exception):
+    pass
 
 
 class BooleanCalculator(object):
     def __init__(self, ast):
         self._ast = ast
-        self._truth_table = None
-        self._fcnf = None
-        self._fdnf = None
 
     @property
     def ast(self):
         return self._ast
 
+    def function_have_variables(self):
+        return True if self.ast.variables else False
+
     @property
+    @functools.lru_cache()
     def truth_table(self):
-        if self._truth_table is None:
-            variables = list(self.ast.variables)
-            variables.sort()
-            variable_values_list = [dict(zip(variables, subset))
-                                    for subset in _subsets(len(variables))]
+        if not self.function_have_variables():
+            raise ConstantFunctionError(
+                f'{self.ast} does not have variables.')
 
-            self._truth_table = []
-            for variable_values in variable_values_list:
-                variable_values['F'] = self.ast.calculate(variable_values)
-                self._truth_table.append(variable_values)
+        variables = list(self.ast.variables)
+        variables.sort()
+        variable_values_list = [dict(zip(variables, subset))
+                                for subset in _subsets(len(variables))]
 
-        return self._truth_table
+        table = []
+        for variable_values in variable_values_list:
+            variable_values['F'] = self.ast.calculate(variable_values)
+            table.append(variable_values)
+        return table
 
     @property
+    @functools.lru_cache()
     def fcnf(self):
-        if self._fcnf is None:
-            truth_table = self.truth_table
-            nodes = [self._fcnf_sum(row) for row in truth_table
-                     if self._fcnf_sum(row) is not None]
-            self._fcnf = reduce(lambda a, x: a & x, nodes)
+        nodes = [self._disjunction(row) for row in self.truth_table
+                 if not row['F']]
 
-        return self._fcnf
+        fcnf_ast = functools.reduce(lambda a, x: a & x, nodes)
+        return fcnf_ast
 
     @property
+    @functools.lru_cache()
     def fdnf(self):
-        if self._fdnf is None:
-            truth_table = self.truth_table
-            nodes = [self._fdnf_product(row) for row in truth_table
-                     if self._fdnf_product(row) is not None]
-            self._fdnf = reduce(lambda a, x: a | x, nodes)
+        nodes = [self._conjunction(row) for row in self.truth_table
+                 if row['F']]
 
-        return self._fdnf
+        fdnf_ast = functools.reduce(lambda a, x: a | x, nodes)
+        return fdnf_ast
 
-    def _fcnf_sum(self, variable_values):
-        if variable_values['F']:
-            return None
+    @staticmethod
+    def _disjunction(truth_table_row):
         nodes = []
-        for variable in set(variable_values) - {'F'}:
-            if variable_values[variable]:
-                nodes.append(
-                    ast.NotExpression(ast.VariableExpression(variable)))
+        for variable in set(truth_table_row) - {'F'}:
+            if truth_table_row[variable]:
+                nodes.append(~ast.VariableExpression(variable))
             else:
                 nodes.append(ast.VariableExpression(variable))
-        fcnf_sum = reduce(lambda a, x: a | x, nodes)
-        return fcnf_sum
 
-    def _fdnf_product(self, variable_values):
-        if not variable_values['F']:
-            return None
+        disjunction = functools.reduce(lambda a, x: a | x, nodes)
+        return disjunction
+
+    @staticmethod
+    def _conjunction(truth_table_row):
         nodes = []
-        for variable in set(variable_values) - {'F'}:
-            if variable_values[variable]:
+        for variable in set(truth_table_row) - {'F'}:
+            if truth_table_row[variable]:
                 nodes.append(ast.VariableExpression(variable))
             else:
-                nodes.append(
-                    ast.NotExpression(ast.VariableExpression(variable)))
-        fdnf_product = reduce(lambda a, x: a & x, nodes)
-        return fdnf_product
+                nodes.append(~ast.VariableExpression(variable))
+
+        conjunction = functools.reduce(lambda a, x: a & x, nodes)
+        return conjunction
 
 
 def _subsets(power):
