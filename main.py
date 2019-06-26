@@ -1,7 +1,6 @@
 from boolean_lexer import lex
 from boolean_parser import parse
 from calculation import BooleanCalculator
-import numpy as np
 
 
 def print_table(table):
@@ -15,20 +14,21 @@ def print_table(table):
 
 
 expression = '(-x & z) V (y & -z) V (x & z)'
-expression1 = '1 & 1 V 0 V 0 / 1'
-tokens = lex(expression1)
-print(tokens)
+expression1 = 'x & y'
+
+tokens = lex(expression)
 ast = parse(tokens)
-print(ast)
+
+tokens = lex(expression1)
+function_ast = parse(tokens)
+
 calculator = BooleanCalculator(ast)
-print_table(calculator.truth_table)
+print_table(calculator.build_truth_table())
+print(calculator.cast_to_fdnf())
 print()
-print(calculator.fcnf)
-print(calculator.fdnf)
 
-
-if __name__ == '__main__':
-    a = np.array([1, 2, 3])
-    print(a)
-
+calculator.function = function_ast
+print_table(calculator.build_truth_table())
+print(calculator.cast_to_fcnf())
+print()
 
