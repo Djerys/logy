@@ -22,20 +22,14 @@ class BooleanCalculator(object):
         return self._truth_table(self.function)
 
     def cast_to_fcnf(self):
-        truth_table = self.build_truth_table()
-        nodes = [self._group_to_term(row, lambda x: x, lambda a, b: a | b)
-                 for row in truth_table if not row['F']]
-
-        fcnf = functools.reduce(lambda a, x: a & x, nodes)
-        return fcnf
+        terms = [self._group_to_term(row, lambda x: x, lambda a, b: a | b)
+                 for row in self.build_truth_table() if not row['F']]
+        return functools.reduce(lambda a, x: a & x, terms)
 
     def cast_to_fdnf(self):
-        truth_table = self.build_truth_table()
-        nodes = [self._group_to_term(row, lambda x: not x, lambda a, b: a & b)
-                 for row in truth_table if row['F']]
-
-        fdnf = functools.reduce(lambda a, x: a | x, nodes)
-        return fdnf
+        terms = [self._group_to_term(row, lambda x: not x, lambda a, b: a & b)
+                 for row in self.build_truth_table() if row['F']]
+        return functools.reduce(lambda a, x: a | x, terms)
 
     @staticmethod
     @functools.lru_cache()
