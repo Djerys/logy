@@ -6,6 +6,9 @@ import language_analysis.combinators as cmb
 
 
 def parse(tokens):
+    parsed = parser()(tokens, 0)
+    if parsed is None:
+        raise ValueError(f'Can not parse tokens: {tokens}')
     return parser()(tokens, 0).tree
 
 
@@ -71,18 +74,18 @@ variable = cmb.Tag(blex.VARIABLE)
 
 
 operator_nodes = {
-    '&': ast.AndExpression,
-    '/': ast.NandExpression,
-    'V': ast.OrExpression,
-    '>': ast.NorExpression,
-    '^': ast.XorExpression,
-    '->': ast.ImplyExpression,
-    '<->': ast.EqExpression,
+    blex.AND: ast.AndExpression,
+    blex.NAND: ast.NandExpression,
+    blex.OR: ast.OrExpression,
+    blex.NOR: ast.NorExpression,
+    blex.XOR: ast.XorExpression,
+    blex.IMPLY: ast.ImplyExpression,
+    blex.EQ: ast.EqExpression,
 }
 
 
 precedence_levels = [
-    ['&', '/'],
-    ['V', '>'],
-    ['^', '->', '<->'],
+    [blex.AND, blex.NAND],
+    [blex.OR, blex.NOR],
+    [blex.XOR, blex.IMPLY, blex.EQ],
 ]

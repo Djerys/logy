@@ -5,13 +5,24 @@ OPERATOR = 0
 CONSTANT = 1
 VARIABLE = 2
 
+
+NOT = '-'
+AND = '*'
+NAND = '/'
+OR = '+'
+NOR = '!'
+XOR = '^'
+IMPLY = '->'
+EQ = '<->'
+
+
 token_patterns = [
     (r'[ \n\t]+', None),
-    (r'\&', OPERATOR),
-    (r'V', OPERATOR),
+    (r'\*', OPERATOR),
+    (r'\+', OPERATOR),
     (r'\^', OPERATOR),
     (r'/', OPERATOR),
-    (r'>', OPERATOR),
+    (r'!', OPERATOR),
     (r'->', OPERATOR),
     (r'<->', OPERATOR),
     (r'-', OPERATOR),
